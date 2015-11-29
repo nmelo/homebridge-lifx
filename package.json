@@ -1,0 +1,23 @@
+{
+  "name": "homebridge-lifx",
+  "version": "0.0.1",
+  "description": "LIFx plugin for homebridge: https://github.com/nfarina/homebridge",
+  "license": "ISC",
+  "keywords": [
+    "homebridge-plugin"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/nmelo/homebridge-lifx.git"
+  },
+  "bugs": {
+    "url": "http://github.com/nmelo/homebridge-lifx/issues"
+  },
+  "engines": {
+    "node": ">=0.12.0",
+    "homebridge": ">=0.2.0"
+  },
+  "dependencies": {
+    "lifx-api": "^1.0.1"
+  }
+}

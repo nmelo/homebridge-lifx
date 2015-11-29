@@ -1,1 +1,1 @@
-Fully-working implementation of a LIFx lightbulb accessory.
+LIFx plugin for homebridge: https://github.com/nfarina/homebridge

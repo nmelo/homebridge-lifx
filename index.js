@@ -299,6 +299,8 @@ LIFxBulbAccessory.prototype = {
 module.exports.accessory = LIFxBulbAccessory;
 module.exports.platform = LIFxPlatform;
 
+var Service, Characteristic;
+
 module.exports = function(homebridge) {
   Service = homebridge.hap.Service;
   Characteristic = homebridge.hap.Characteristic;

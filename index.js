@@ -139,7 +139,7 @@ LIFxBulbAccessory.prototype = {
     setLanColor: function(type, value, callback){
         var bulb = lifx_lan.bulbs[this.deviceId];
 
-        this.log("Setting remote power: " + state);
+        this.log("Setting LAN color: " + type + " value: " + value);
 
         if (!bulb) {
             callback(new Error("Device not found"), false);

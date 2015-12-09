@@ -220,7 +220,8 @@ LIFxBulbAccessory.prototype = {
                 .on('get', function(callback) { that.getLan("brightness", callback);})
                 .on('set', function(value, callback) { that.setLanColor("brightness", value, callback);});
 
-                if (this.capabilities.has_color == true) {
+
+                //if (this.capabilities.has_color == true) {
                     service
                     .addCharacteristic(Characteristic.Hue)
                     .on('get', function(callback) { that.getLan("hue", callback);})
@@ -230,7 +231,7 @@ LIFxBulbAccessory.prototype = {
                     .addCharacteristic(Characteristic.Saturation)
                     .on('get', function(callback) { that.getLan("saturation", callback);})
                     .on('set', function(value, callback) { that.setLanColor("saturation", value, callback);});
-                }
+                //}
                 break;
             case "get":
                 // gets over the lan api, sets over the remote api
@@ -244,7 +245,7 @@ LIFxBulbAccessory.prototype = {
                 .on('get', function(callback) { that.getLan("brightness", callback);})
                 .on('set', function(value, callback) { that.setRemoteColor("brightness", value, callback);});
 
-                if (this.capabilities.has_color == true) {
+                //if (this.capabilities.has_color == true) {
                     service
                     .addCharacteristic(Characteristic.Hue)
                     .on('get', function(callback) { that.getLan("hue", callback);})
@@ -254,7 +255,7 @@ LIFxBulbAccessory.prototype = {
                     .addCharacteristic(Characteristic.Saturation)
                     .on('get', function(callback) { that.getLan("saturation", callback);})
                     .on('set', function(value, callback) { that.setRemoteColor("saturation", value, callback);});
-                }
+                //}
                 break;
             default:
                 // gets and sets over the remote api
@@ -268,7 +269,7 @@ LIFxBulbAccessory.prototype = {
                 .on('get', function(callback) { that.getRemote("brightness", callback);})
                 .on('set', function(value, callback) { that.setRemoteColor("brightness", value, callback);});
 
-                if (this.capabilities.has_color == true) {
+                //if (this.capabilities.has_color == true) {
                     service
                     .addCharacteristic(Characteristic.Hue)
                     .on('get', function(callback) { that.getRemote("hue", callback);})
@@ -278,7 +279,7 @@ LIFxBulbAccessory.prototype = {
                     .addCharacteristic(Characteristic.Saturation)
                     .on('get', function(callback) { that.getRemote("saturation", callback);})
                     .on('set', function(value, callback) { that.setRemoteColor("saturation", value, callback);});
-                }
+                //}
         }
 
         services.push(service);
@@ -307,4 +308,4 @@ module.exports = function(homebridge) {
 
   homebridge.registerAccessory("homebridge-lifx-bulb", "LIFxBulb", LIFxBulbAccessory);
   homebridge.registerPlatform("homebridge-lifx", "LIFx", LIFxPlatform);
-}
+};

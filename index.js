@@ -147,6 +147,8 @@ LIFxBulbAccessory.prototype = {
     setLanColor: function(type, value, callback){
         var bulb = lifx_lan.bulbs[this.deviceId];
 
+        this.log("Setting LAN color: " + type + " value: " + value);
+
         if (!bulb) {
             callback(new Error("Device not found"), false);
             return;
@@ -169,6 +171,7 @@ LIFxBulbAccessory.prototype = {
     setLanPower: function(state, callback){
         var bulb = lifx_lan.bulbs[this.deviceId];
 
+        this.log("Setting LAN power: " + state);
         if (!bulb) {
             callback(new Error("Device not found"), false);
             return;
@@ -186,6 +189,7 @@ LIFxBulbAccessory.prototype = {
     setRemoteColor: function(type, value, callback){
         var color;
 
+        this.log("Setting remote color: " + type + ", value: " + value);
         switch(type) {
             case "brightness":
                 color = "brightness:" + (value / 100);
@@ -205,6 +209,7 @@ LIFxBulbAccessory.prototype = {
     setRemotePower: function(state, callback){
         var that = this;
 
+        this.log("Setting remote power: " + state);
         lifx_remote.setPower("id:"+ that.deviceId, (state == 1 ? "on" : "off"), 0, function (body) {
             callback();
         });
@@ -302,4 +307,4 @@ module.exports = function(homebridge) {
 
   homebridge.registerAccessory("homebridge-lifx-bulb", "LIFxBulb", LIFxBulbAccessory);
   homebridge.registerPlatform("homebridge-lifx", "LIFx", LIFxPlatform);
-}
+};

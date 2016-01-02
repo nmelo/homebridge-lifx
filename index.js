@@ -67,42 +67,50 @@ function LIFxBulbAccessory(log, bulb) {
     this.serial = bulb.uuid;
     this.capabilities = bulb.capabilities;
     this.log = log;
+
+    if (use_lan != false && lifx_lan.bulbs[this.deviceId]) {
+        var that = this;
+        this.bulb = lifx_lan.bulbs[this.deviceId];
+
+        lifx_lan.on('bulbstate', function(bulb) {
+            if (bulb.addr.toString('hex') == that.deviceId) {
+                that.bulb = bulb;
+
+                if (that.service) {
+                    that.service.getCharacteristic(Characteristic.On).setValue(that.bulb.state.power > 0);
+                    that.service.getCharacteristic(Characteristic.Brightness).setValue(Math.round(that.bulb.state.brightness * 100 / 65535));
+
+                    if (that.capabilities.has_color == true) {
+                        that.service.getCharacteristic(Characteristic.Hue).setValue(Math.round(that.bulb.state.hue * 360 / 65535));
+                        that.service.getCharacteristic(Characteristic.Saturation).setValue(Math.round(that.bulb.state.saturation * 100 / 65535));
+                    }
+                }
+            }
+        });
+    }
 }
 
 LIFxBulbAccessory.prototype = {
     getLan: function(type, callback){
-        var that = this;
-
         if (!lifx_lan.bulbs[this.deviceId]) {
             callback(new Error("Device not found"), false);
             return;
         }
 
-        lifx_lan.requestStatus();
-        lifx_lan.on('bulbstate', function(bulb) {
-            if (callback == null) {
-                return;
-            }
-
-            if (bulb.addr.toString('hex') == that.deviceId) {
-                switch(type) {
-                    case "power":
-                        callback(null, bulb.state.power > 0);
-                        break;
-                    case "brightness":
-                        callback(null, Math.round(bulb.state.brightness * 100 / 65535));
-                        break;
-                    case "hue":
-                        callback(null, Math.round(bulb.state.hue * 360 / 65535));
-                        break;
-                    case "saturation":
-                        callback(null, Math.round(bulb.state.saturation * 100 / 65535));
-                        break;
-                }
-
-                callback = null
-            }
-        });
+        switch(type) {
+            case "power":
+                callback(null, this.bulb.state.power > 0);
+                break;
+            case "brightness":
+                callback(null, Math.round(this.bulb.state.brightness * 100 / 65535));
+                break;
+            case "hue":
+                callback(null, Math.round(this.bulb.state.hue * 360 / 65535));
+                break;
+            case "saturation":
+                callback(null, Math.round(this.bulb.state.saturation * 100 / 65535));
+                break;
+        }
     },
     getRemote: function(type, callback){
         var that = this;
@@ -209,90 +217,76 @@ LIFxBulbAccessory.prototype = {
     getServices: function() {
         var that = this;
         var services = []
-        var service = new Service.Lightbulb(this.name);
+        this.service = new Service.Lightbulb(this.name);
 
         switch(use_lan) {
             case true:
             case "true":
                 // gets and sets over the lan api
-                service
-                .getCharacteristic(Characteristic.On)
-                .on('get', function(callback) { that.getLan("power", callback);})
-                .on('set', function(value, callback) {that.setLanPower(value, callback);});
+                this.service.getCharacteristic(Characteristic.On)
+                    .on('get', function(callback) { that.getLan("power", callback);})
+                    .on('set', function(value, callback) {that.setLanPower(value, callback);});
 
-                service
-                .addCharacteristic(Characteristic.Brightness)
-                .on('get', function(callback) { that.getLan("brightness", callback);})
-                .on('set', function(value, callback) { that.setLanColor("brightness", value, callback);});
+                this.service.addCharacteristic(Characteristic.Brightness)
+                    .on('get', function(callback) { that.getLan("brightness", callback);})
+                    .on('set', function(value, callback) { that.setLanColor("brightness", value, callback);});
 
+                if (this.capabilities.has_color == true) {
+                    this.service.addCharacteristic(Characteristic.Hue)
+                        .on('get', function(callback) { that.getLan("hue", callback);})
+                        .on('set', function(value, callback) { that.setLanColor("hue", value, callback);});
 
-                //if (this.capabilities.has_color == true) {
-                    service
-                    .addCharacteristic(Characteristic.Hue)
-                    .on('get', function(callback) { that.getLan("hue", callback);})
-                    .on('set', function(value, callback) { that.setLanColor("hue", value, callback);});
-
-                    service
-                    .addCharacteristic(Characteristic.Saturation)
-                    .on('get', function(callback) { that.getLan("saturation", callback);})
-                    .on('set', function(value, callback) { that.setLanColor("saturation", value, callback);});
-                //}
+                    this.service.addCharacteristic(Characteristic.Saturation)
+                        .on('get', function(callback) { that.getLan("saturation", callback);})
+                        .on('set', function(value, callback) { that.setLanColor("saturation", value, callback);});
+                }
                 break;
             case "get":
                 // gets over the lan api, sets over the remote api
-                service
-                .getCharacteristic(Characteristic.On)
-                .on('get', function(callback) { that.getLan("power", callback);})
-                .on('set', function(value, callback) {that.setRemotePower(value, callback);});
+                this.service.getCharacteristic(Characteristic.On)
+                    .on('get', function(callback) { that.getLan("power", callback);})
+                    .on('set', function(value, callback) {that.setRemotePower(value, callback);});
 
-                service
-                .addCharacteristic(Characteristic.Brightness)
-                .on('get', function(callback) { that.getLan("brightness", callback);})
-                .on('set', function(value, callback) { that.setRemoteColor("brightness", value, callback);});
+                this.service.addCharacteristic(Characteristic.Brightness)
+                    .on('get', function(callback) { that.getLan("brightness", callback);})
+                    .on('set', function(value, callback) { that.setRemoteColor("brightness", value, callback);});
 
-                //if (this.capabilities.has_color == true) {
-                    service
-                    .addCharacteristic(Characteristic.Hue)
-                    .on('get', function(callback) { that.getLan("hue", callback);})
-                    .on('set', function(value, callback) { that.setRemoteColor("hue", value, callback);});
+                if (this.capabilities.has_color == true) {
+                    this.service.addCharacteristic(Characteristic.Hue)
+                        .on('get', function(callback) { that.getLan("hue", callback);})
+                        .on('set', function(value, callback) { that.setRemoteColor("hue", value, callback);});
 
-                    service
-                    .addCharacteristic(Characteristic.Saturation)
-                    .on('get', function(callback) { that.getLan("saturation", callback);})
-                    .on('set', function(value, callback) { that.setRemoteColor("saturation", value, callback);});
-                //}
+                    this.service.addCharacteristic(Characteristic.Saturation)
+                        .on('get', function(callback) { that.getLan("saturation", callback);})
+                        .on('set', function(value, callback) { that.setRemoteColor("saturation", value, callback);});
+                }
                 break;
             default:
                 // gets and sets over the remote api
-                service
-                .getCharacteristic(Characteristic.On)
-                .on('get', function(callback) { that.getRemote("power", callback);})
-                .on('set', function(value, callback) {that.setRemotePower(value, callback);});
+                this.service.getCharacteristic(Characteristic.On)
+                    .on('get', function(callback) { that.getRemote("power", callback);})
+                    .on('set', function(value, callback) {that.setRemotePower(value, callback);});
 
-                service
-                .addCharacteristic(Characteristic.Brightness)
-                .on('get', function(callback) { that.getRemote("brightness", callback);})
-                .on('set', function(value, callback) { that.setRemoteColor("brightness", value, callback);});
+                this.service.addCharacteristic(Characteristic.Brightness)
+                    .on('get', function(callback) { that.getRemote("brightness", callback);})
+                    .on('set', function(value, callback) { that.setRemoteColor("brightness", value, callback);});
 
-                //if (this.capabilities.has_color == true) {
-                    service
-                    .addCharacteristic(Characteristic.Hue)
-                    .on('get', function(callback) { that.getRemote("hue", callback);})
-                    .on('set', function(value, callback) { that.setRemoteColor("hue", value, callback);});
+                if (this.capabilities.has_color == true) {
+                    this.service.addCharacteristic(Characteristic.Hue)
+                        .on('get', function(callback) { that.getRemote("hue", callback);})
+                        .on('set', function(value, callback) { that.setRemoteColor("hue", value, callback);});
 
-                    service
-                    .addCharacteristic(Characteristic.Saturation)
-                    .on('get', function(callback) { that.getRemote("saturation", callback);})
-                    .on('set', function(value, callback) { that.setRemoteColor("saturation", value, callback);});
-                //}
+                    this.service.addCharacteristic(Characteristic.Saturation)
+                        .on('get', function(callback) { that.getRemote("saturation", callback);})
+                        .on('set', function(value, callback) { that.setRemoteColor("saturation", value, callback);});
+                }
         }
 
-        services.push(service);
+        services.push(this.service);
 
-        service = new Service.AccessoryInformation();
+        var service = new Service.AccessoryInformation();
 
-        service
-            .setCharacteristic(Characteristic.Manufacturer, "LIFX")
+        service.setCharacteristic(Characteristic.Manufacturer, "LIFX")
             .setCharacteristic(Characteristic.Model, this.model)
             .setCharacteristic(Characteristic.SerialNumber, this.serial);
 

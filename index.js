@@ -8,7 +8,8 @@
 //         "platform": "LIFx",             // required
 //         "name": "LIFx",                 // required
 //         "access_token": "access token", // required
-//         "use_lan": "true"               // optional set to "true" (gets and sets over the lan) or "get" (gets only over the lan)
+//         "use_lan": "true",              // optional set to "true" (gets and sets over the lan) or "get" (gets only over the lan)
+//         "fade_duration": 1.0            // optional gradually fade for a number of seconds (default is 0)
 //     }
 // ],
 //
@@ -22,6 +23,7 @@ var lifx_remote;
 var lifxLanObj;
 var lifx_lan;
 var use_lan;
+var fade_duration;
 
 function LIFxPlatform(log, config){
     // auth info
@@ -31,10 +33,13 @@ function LIFxPlatform(log, config){
 
     // use remote or lan api ?
     use_lan = config["use_lan"] || false;
+    fade_duration = config["fade_duration"] || 0;
 
     if (use_lan != false) {
         lifxLanObj = require('lifx');
         lifx_lan = lifxLanObj.init();
+        // convert fade_duration to milliseconds
+        fade_duration = Math.round(fade_duration * 1000);
     }
 
     this.log = log;
@@ -164,7 +169,7 @@ LIFxBulbAccessory.prototype = {
         var scale = {hue: 360, saturation: 100, brightness: 100, kelvin: 65535}[type];
 
         state[type] = Math.round(value * 65535 / scale) & 0xffff;
-        lifx_lan.lightsColour(state.hue, state.saturation, state.brightness, state.kelvin, 0, bulb);
+        lifx_lan.lightsColour(state.hue, state.saturation, state.brightness, state.kelvin, fade_duration, bulb);
 
         callback(null);
     },
@@ -202,7 +207,7 @@ LIFxBulbAccessory.prototype = {
                 break;
         }
 
-        lifx_remote.setColor("id:"+ this.deviceId, color, 0, null, function (body) {
+        lifx_remote.setColor("id:"+ this.deviceId, color, fade_duration, null, function (body) {
             callback();
         });
     },
@@ -210,7 +215,7 @@ LIFxBulbAccessory.prototype = {
         var that = this;
 
         this.log("Setting remote power: " + state);
-        lifx_remote.setPower("id:"+ that.deviceId, (state == 1 ? "on" : "off"), 0, function (body) {
+        lifx_remote.setPower("id:"+ that.deviceId, (state == 1 ? "on" : "off"), fade_duration, function (body) {
             callback();
         });
     },

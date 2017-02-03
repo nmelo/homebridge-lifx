@@ -161,7 +161,7 @@ LIFxBulbAccessory.prototype = {
             kelvin: bulb.state.kelvin
         };
 
-        var scale = type == "hue" ? 360 : 100;
+        var scale = {hue: 360, saturation: 100, brightness, 100, kelvin: 65535}[type];
 
         state[type] = Math.round(value * 65535 / scale) & 0xffff;
         lifx_lan.lightsColour(state.hue, state.saturation, state.brightness, state.kelvin, 0, bulb);
